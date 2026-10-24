@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#EADDE6">
+  <meta name="description" content="Вкажіть дату переносу ембріона та дізнайтеся, на який фрукт сьогодні схожий ваш малюк.">
+  <title>Малюк-фрукт</title>
+  <link rel="icon" href="fruits/week-16.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Podkova:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <img src="fruits/week-16.webp" alt="" width="36" height="36">
+      <span>Малюк-фрукт</span>
+    </header>
+
+    <main class="stage" id="stage" data-screen="form">
+      <section class="copy">
+        <!-- Екран 1: реєстрація -->
+        <div id="screen-form">
+          <h1>Яким фруктом був би ваш малюк сьогодні?</h1>
+          <p class="lead">Напишіть своє ім’я та дату переносу ембріона. Ми порахуємо термін і покажемо малюка.</p>
+
+          <form id="form" novalidate>
+            <div class="field">
+              <label for="name">Ваше ім’я</label>
+              <input id="name" name="name" type="text" maxlength="30" autocomplete="given-name" aria-describedby="name-error" required>
+              <p class="error" id="name-error" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="date">Дата переносу</label>
+              <input id="date" name="date" type="date" aria-describedby="date-hint date-error" required>
+              <p class="hint" id="date-hint">Дата штучного переносу ембріона в клініці.</p>
+              <p class="error" id="date-error" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="day">Вік ембріона на момент переносу</label>
+              <select id="day" name="day" aria-describedby="day-hint">
+                <option value="5" selected>5 днів (бластоциста)</option>
+                <option value="3">3 дні</option>
+                <option value="6">6 днів</option>
+              </select>
+              <p class="hint" id="day-hint">Це вказано в протоколі переносу. Якщо не впевнені, залиште 5 днів: так буває найчастіше.</p>
+            </div>
+            <button class="btn btn--primary" type="submit">Показати малюка</button>
+            <p class="hint hint--privacy">Дані залишаються лише у вашому браузері.</p>
+          </form>
+        </div>
+
+        <!-- Екран 2: результат -->
+        <div id="screen-result" hidden>
+          <h1 id="result-title" aria-live="polite"></h1>
+          <p class="lead" id="result-sub"></p>
+
+          <dl class="facts" id="facts">
+            <div class="fact">
+              <dt>Зріст</dt>
+              <dd id="fact-height"></dd>
+            </div>
+            <div class="fact">
+              <dt>Вага</dt>
+              <dd id="fact-weight"></dd>
+            </div>
+          </dl>
+
+          <p class="story" id="result-fact"></p>
+          <p class="due" id="result-due"></p>
+
+          <div class="actions">
+            <button class="btn btn--ghost" type="button" id="back-today" hidden>Повернутися до поточного тижня</button>
+            <button class="btn btn--ghost" type="button" id="edit">Змінити дані</button>
+          </div>
+        </div>
+      </section>
+
+      <figure class="figure" aria-label="Малюнок: майбутня мама, у животику в неї малюк у вигляді фрукта">
+        <div class="figure__blob figure__blob--a"></div>
+        <div class="figure__blob figure__blob--b"></div>
+
+        <svg class="mom" viewBox="0 0 400 560" role="img" aria-label="Мультяшна майбутня мама, що обіймає животик" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="glow" cx="50%" cy="42%" r="62%">
+              <stop offset="0" stop-color="#FFFFFF"/>
+              <stop offset=".65" stop-color="#F6EEF3"/>
+              <stop offset="1" stop-color="#E4D2EC"/>
+            </radialGradient>
+            <path id="spark" d="M0-14Q1.5-1.5 14 0Q1.5 1.5 0 14Q-1.5 1.5-14 0Q-1.5-1.5 0-14Z"/>
+          </defs>
+
+          <g stroke-linejoin="round" stroke-linecap="round">
+            <ellipse cx="200" cy="546" rx="116" ry="11" fill="#C9B3D6" opacity=".55"/>
+
+            <!-- ноги и туфли -->
+            <rect x="166" y="470" width="24" height="64" rx="11" fill="#F6D5C8" stroke="#4A2F4F" stroke-width="5"/>
+            <rect x="210" y="470" width="24" height="64" rx="11" fill="#F6D5C8" stroke="#4A2F4F" stroke-width="5"/>
+            <ellipse cx="172" cy="536" rx="21" ry="10" fill="#D9A6B5" stroke="#4A2F4F" stroke-width="5"/>
+            <ellipse cx="228" cy="536" rx="21" ry="10" fill="#D9A6B5" stroke="#4A2F4F" stroke-width="5"/>
+
+            <!-- волосся ззаду -->
+            <path d="M136 125C128 48 272 48 264 125C276 170 282 215 262 252C240 264 160 264 138 252C118 215 124 170 136 125Z" fill="#7A5275" stroke="#4A2F4F" stroke-width="5"/>
+
+            <!-- шея -->
+            <path d="M184 168L184 222C194 232 206 232 216 222L216 168Z" fill="#F6D5C8" stroke="#4A2F4F" stroke-width="5"/>
+
+            <!-- руки (под платьем) -->
+            <path d="M146 240C90 272 78 382 128 442C142 458 158 464 172 462" fill="none" stroke="#4A2F4F" stroke-width="34"/>
+            <path d="M254 240C310 272 322 382 272 442C258 458 242 464 228 462" fill="none" stroke="#4A2F4F" stroke-width="34"/>
+            <path d="M146 240C90 272 78 382 128 442C142 458 158 464 172 462" fill="none" stroke="#F6D5C8" stroke-width="23"/>
+            <path d="M254 240C310 272 322 382 272 442C258 458 242 464 228 462" fill="none" stroke="#F6D5C8" stroke-width="23"/>
+
+            <!-- платье -->
+            <path d="M152 224C178 214 222 214 248 224C262 262 262 290 276 322C304 380 296 440 268 480L132 480C104 440 96 380 124 322C138 290 138 262 152 224Z" fill="#C9B3D6" stroke="#4A2F4F" stroke-width="6"/>
+            <path d="M132 480C160 488 240 488 268 480" fill="none" stroke="#4A2F4F" stroke-width="5"/>
+            <!-- виріз -->
+            <path d="M170 218Q200 252 230 218Q200 226 170 218Z" fill="#F6D5C8" stroke="#4A2F4F" stroke-width="4"/>
+
+            <!-- рукава-фонарики -->
+            <circle cx="146" cy="242" r="21" fill="#D6C2E2" stroke="#4A2F4F" stroke-width="5"/>
+            <circle cx="254" cy="242" r="21" fill="#D6C2E2" stroke="#4A2F4F" stroke-width="5"/>
+
+            <!-- віконце на животику -->
+            <circle cx="200" cy="372" r="82" fill="#4A2F4F"/>
+            <circle cx="200" cy="372" r="77" fill="url(#glow)"/>
+            <circle cx="200" cy="372" r="68" fill="none" stroke="#C9B3D6" stroke-width="2.5" stroke-dasharray="2 9" opacity=".9"/>
+
+            <!-- руки-ладони поверх -->
+            <circle cx="172" cy="462" r="15" fill="#F6D5C8" stroke="#4A2F4F" stroke-width="5"/>
+            <circle cx="228" cy="462" r="15" fill="#F6D5C8" stroke="#4A2F4F" stroke-width="5"/>
+
+            <!-- голова -->
+            <circle cx="200" cy="126" r="58" fill="#F6D5C8" stroke="#4A2F4F" stroke-width="5"/>
+            <path d="M142 120C144 72 256 72 258 120C240 106 222 94 206 82C196 100 170 114 142 120Z" fill="#7A5275" stroke="#4A2F4F" stroke-width="5"/>
+            <!-- цветок в волосах -->
+            <g stroke="#4A2F4F" stroke-width="3">
+              <circle cx="246" cy="88" r="9" fill="#D9A6B5"/>
+              <circle cx="258" cy="98" r="9" fill="#D9A6B5"/>
+              <circle cx="244" cy="102" r="9" fill="#D9A6B5"/>
+              <circle cx="251" cy="96" r="6" fill="#FFF8E6"/>
+            </g>
+            <!-- лицо -->
+            <path d="M166 133Q177 143 188 133" fill="none" stroke="#4A2F4F" stroke-width="4"/>
+            <path d="M212 133Q223 143 234 133" fill="none" stroke="#4A2F4F" stroke-width="4"/>
+            <path d="M189 151Q200 162 211 151" fill="none" stroke="#4A2F4F" stroke-width="4"/>
+            <ellipse cx="160" cy="150" rx="11" ry="7" fill="#F28FA0" opacity=".75" stroke="none"/>
+            <ellipse cx="240" cy="150" rx="11" ry="7" fill="#F28FA0" opacity=".75" stroke="none"/>
+          </g>
+
+          <g fill="#FFFFFF" opacity=".95">
+            <use href="#spark" transform="translate(52 150) scale(.9)"/>
+            <use href="#spark" transform="translate(352 214) scale(1.15)"/>
+            <use href="#spark" transform="translate(64 330) scale(.7)"/>
+            <use href="#spark" transform="translate(338 70) scale(.65)"/>
+          </g>
+        </svg>
+
+        <div class="window" aria-hidden="true">
+          <img id="fruit" alt="" width="512" height="512" decoding="async">
+        </div>
+      </figure>
+    </main>
+
+    <!-- Шкала тижнів -->
+    <section class="timeline" id="timeline" hidden aria-labelledby="timeline-title">
+      <h2 id="timeline-title">Натисніть на тиждень, щоб побачити, яким малюк був або буде</h2>
+      <ol class="weeks" id="weeks"></ol>
+      <div class="weeks-ends"><span>4-й тиждень</span><span>40-й тиждень</span></div>
+    </section>
+
+    <footer class="foot">
+      Розміри приблизні: кожен малюк розвивається по-своєму. Сайт не замінює консультацію лікаря.
+    </footer>
+  </div>
+
+  <noscript><p style="padding:24px">Для роботи сайту потрібен JavaScript.</p></noscript>
+  <script src="app.js"></script>
+</body>
+</html>
