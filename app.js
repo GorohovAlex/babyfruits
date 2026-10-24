@@ -74,6 +74,14 @@ const el = {
   fruit: $("fruit"),
   prev: $("prev"),
   next: $("next"),
+  ringBar: $("ring-bar"),
+  ringText: $("ring-text"),
+  progressTitle: $("progress-title"),
+  progressSub: $("progress-sub"),
+  upcoming: $("upcoming"),
+  events: $("events"),
+  share: $("share"),
+  shareStatus: $("share-status"),
 };
 
 /* ---------- расчёт срока ---------- */
@@ -274,6 +282,7 @@ function render() {
 
   el.back.hidden = !isPreview;
   el.facts.hidden = false;
+  el.shareStatus.textContent = "";
 
   if (shown < FIRST_WEEK) {
     // совсем ранний срок: фруктов ещё нет
@@ -283,6 +292,9 @@ function render() {
     el.facts.hidden = true;
     el.story.textContent = "Зазирніть сюди за кілька днів або натисніть на тиждень унизу, щоб подивитися наперед.";
     el.due.textContent = dueText(profile);
+    renderProgress(todayWeek, ((days + 14) % 7 + 7) % 7);
+    renderEvents();
+    el.share.hidden = true;
     showFruit(0);
     updateTimeline(null);
     updateArrows();
@@ -308,6 +320,13 @@ function render() {
   el.story.textContent = data.fact;
   el.due.textContent = isPreview ? "" : dueText(profile);
 
+  // в режиме просмотра показываем прогресс выбранной недели, иначе точный срок на сегодня
+  if (isPreview) renderProgress(w);
+  else renderProgress(todayWeek, Math.max(days + 14 - todayWeek * 7, 0));
+  renderEvents();
+  el.share.hidden = false;
+  el.shareStatus.textContent = "";
+
   showFruit(w);
   updateTimeline(w);
   updateArrows();
@@ -323,6 +342,98 @@ function dueText(p) {
     return `Чекаємо на зустріч приблизно ${when}, залишилося близько ${left} ${unit}.`;
   }
   return `Очікувана дата пологів: ${when}.`;
+}
+
+/* ---------- прогресс беременности ---------- */
+const RING_LENGTH = 188.5; // 2 * pi * 30
+const TOTAL_WEEKS = 40;
+
+function trimesterOf(weeks) {
+  return weeks < 14 ? 1 : weeks < 28 ? 2 : 3;
+}
+
+/* weeks: полных недель, extraDays: дней сверх них. */
+function renderProgress(weeks, extraDays = 0) {
+  const done = Math.min(Math.max((weeks * 7 + extraDays) / (TOTAL_WEEKS * 7), 0), 1);
+  const pct = Math.round(done * 100);
+  const left = Math.max(TOTAL_WEEKS - weeks, 0);
+
+  el.ringBar.style.strokeDashoffset = String(RING_LENGTH * (1 - done));
+  el.ringText.textContent = `${pct}%`;
+  el.progressTitle.textContent = `${trimesterOf(weeks)}-й триместр`;
+  el.progressSub.textContent = left > 0
+    ? `Ще ${left} ${plural(left, ["тиждень", "тижні", "тижнів"])} до пологів`
+    : "Термін у 40 тижнів настав";
+}
+
+/* ---------- ближайшие события ---------- */
+const addDays = (date, n) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
+
+/* from/to: акушерские дни (от первого дня последних месячных), либо transfer: дни после переноса. */
+const EVENTS = [
+  { name: "Аналіз крові на ХГЧ", note: "Підтверджує вагітність. Дату зазвичай призначає клініка.", transfer: [12, 14] },
+  { name: "Перше УЗД: серцебиття", note: "Видно плідне яйце і серцебиття малюка.", from: 42, to: 49 },
+  { name: "Скринінг першого триместру", note: "УЗД та аналіз крові, 11–13 тижнів і 6 днів.", from: 77, to: 97 },
+  { name: "Детальне УЗД", note: "Лікар оглядає органи малюка, 18–21 тиждень.", from: 126, to: 153 },
+  { name: "Тест на глюкозу", note: "Перевіряє рівень цукру, 24–28 тижнів.", from: 168, to: 196 },
+  { name: "Декретна відпустка", note: "Право на відпустку з 30-го тижня.", from: 210, to: 210 },
+  { name: "Скринінг третього триместру", note: "УЗД та огляд перед пологами, 30–34 тижні.", from: 210, to: 238 },
+];
+
+function eventDates(ev, p) {
+  const transfer = parseDate(p.date);
+  if (ev.transfer) return [addDays(transfer, ev.transfer[0]), addDays(transfer, ev.transfer[1])];
+  const lmp = addDays(transfer, -(p.day + 14)); // умовний перший день останніх місячних
+  return [addDays(lmp, ev.from), addDays(lmp, ev.to)];
+}
+
+function formatRange(a, b) {
+  const month = (d) => d.toLocaleDateString("uk-UA", { month: "long" });
+  const full = (d) => d.toLocaleDateString("uk-UA", { day: "numeric", month: "long" });
+  if (a.getTime() === b.getTime()) return full(a);
+  return a.getMonth() === b.getMonth() ? `${a.getDate()}–${b.getDate()} ${month(b)}` : `${full(a)} – ${full(b)}`;
+}
+
+function renderEvents() {
+  const today = startOfToday();
+  const upcoming = EVENTS
+    .map((ev) => ({ ev, range: eventDates(ev, profile) }))
+    .filter(({ range }) => range[1] >= today)
+    .sort((x, y) => x.range[0] - y.range[0])
+    .slice(0, 3);
+
+  el.events.textContent = "";
+  el.upcoming.hidden = upcoming.length === 0;
+
+  for (const { ev, range } of upcoming) {
+    const [from, to] = range;
+    const inDays = Math.round((from - today) / DAY_MS);
+    const now = from <= today;
+
+    const li = document.createElement("li");
+    li.className = "event";
+
+    const date = document.createElement("span");
+    date.className = "event__date";
+    date.textContent = formatRange(from, to);
+
+    const body = document.createElement("div");
+    body.className = "event__body";
+    const name = document.createElement("p");
+    name.className = "event__name";
+    name.textContent = ev.name;
+    const note = document.createElement("p");
+    note.className = "event__note";
+    note.textContent = ev.note;
+    body.append(name, note);
+
+    const when = document.createElement("span");
+    when.className = "event__when" + (now ? " event__when--now" : "");
+    when.textContent = now ? "зараз" : `через ${inDays} ${plural(inDays, ["день", "дні", "днів"])}`;
+
+    li.append(date, body, when);
+    el.events.append(li);
+  }
 }
 
 /* ---------- экраны ---------- */
@@ -352,6 +463,154 @@ function showResult() {
   render();
   window.scrollTo(0, 0); // на телефоне форма длинная: показываем рисунок сверху
   el.title.focus({ preventScroll: true });
+}
+
+/* ---------- картинка для відправки ---------- */
+const CARD = { w: 1080, h: 1350, plum: "#4A2F4F", soft: "#6E5473", powder: "#EADDE6", mist: "#F6EEF3", lilac: "#C9B3D6" };
+
+function loadedFruitImage() {
+  const img = el.fruit;
+  if (img.complete && img.naturalWidth) return Promise.resolve(img);
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("fruit image timeout")), 4000);
+    img.addEventListener("load", () => { clearTimeout(timer); resolve(img); }, { once: true });
+  });
+}
+
+function wrapLines(ctx, text, maxWidth) {
+  const lines = [];
+  let line = "";
+  for (const word of text.split(" ")) {
+    const test = line ? `${line} ${word}` : word;
+    if (line && ctx.measureText(test).width > maxWidth) { lines.push(line); line = word; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function spark(ctx, x, y, r) {
+  ctx.beginPath();
+  ctx.moveTo(x, y - r);
+  ctx.quadraticCurveTo(x + r * 0.1, y - r * 0.1, x + r, y);
+  ctx.quadraticCurveTo(x + r * 0.1, y + r * 0.1, x, y + r);
+  ctx.quadraticCurveTo(x - r * 0.1, y + r * 0.1, x - r, y);
+  ctx.quadraticCurveTo(x - r * 0.1, y - r * 0.1, x, y - r);
+  ctx.fill();
+}
+
+async function drawShareCard() {
+  const w = clampWeek(viewWeek !== null ? viewWeek : todayWeek);
+  const data = WEEKS[w];
+  const [img] = await Promise.all([
+    loadedFruitImage(),
+    document.fonts ? document.fonts.load('800 60px Podkova') : null,
+    document.fonts ? document.fonts.load('700 40px Nunito') : null,
+  ]);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = CARD.w;
+  canvas.height = CARD.h;
+  const ctx = canvas.getContext("2d");
+  const cx = CARD.w / 2;
+
+  ctx.fillStyle = CARD.powder;
+  ctx.fillRect(0, 0, CARD.w, CARD.h);
+
+  // сиреневое пятно позади
+  const blob = ctx.createLinearGradient(100, 100, 980, 900);
+  blob.addColorStop(0, "#D9C6E3");
+  blob.addColorStop(1, "#E3C5D3");
+  ctx.fillStyle = blob;
+  ctx.beginPath();
+  ctx.moveTo(150, 420);
+  ctx.bezierCurveTo(90, 200, 520, 40, 820, 150);
+  ctx.bezierCurveTo(1040, 250, 1050, 650, 900, 830);
+  ctx.bezierCurveTo(750, 1010, 250, 990, 140, 760);
+  ctx.bezierCurveTo(90, 640, 190, 560, 150, 420);
+  ctx.fill();
+
+  // «окно» как на животе
+  const cy = 465;
+  ctx.fillStyle = CARD.plum;
+  ctx.beginPath(); ctx.arc(cx, cy, 345, 0, Math.PI * 2); ctx.fill();
+  const glow = ctx.createRadialGradient(cx, cy - 60, 20, cx, cy, 330);
+  glow.addColorStop(0, "#FFFFFF");
+  glow.addColorStop(0.65, CARD.mist);
+  glow.addColorStop(1, "#E4D2EC");
+  ctx.fillStyle = glow;
+  ctx.beginPath(); ctx.arc(cx, cy, 328, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = CARD.lilac;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.setLineDash([2, 22]);
+  ctx.beginPath(); ctx.arc(cx, cy, 296, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // фрукт
+  const size = 500;
+  ctx.drawImage(img, cx - size / 2, cy - size / 2, size, size);
+
+  ctx.fillStyle = "#FFFFFF";
+  spark(ctx, 170, 250, 34); spark(ctx, 930, 330, 44); spark(ctx, 190, 760, 26); spark(ctx, 900, 110, 24);
+
+  // тексты
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  const head = viewWeek === null ? `${profile.name}, ${w}-й тиждень` : `${w}-й тиждень`;
+  ctx.fillStyle = CARD.soft;
+  ctx.font = '800 50px Podkova, Georgia, serif';
+  ctx.fillText(head, cx, 925);
+
+  ctx.fillStyle = CARD.plum;
+  ctx.font = '800 78px Podkova, Georgia, serif';
+  const lines = wrapLines(ctx, `малюк розміром ${data.with}`, 900);
+  lines.forEach((line, i) => ctx.fillText(line, cx, 1020 + i * 92));
+
+  ctx.fillStyle = CARD.soft;
+  ctx.font = '700 40px Nunito, system-ui, sans-serif';
+  ctx.fillText(`${formatHeight(data.cm)} · ${formatWeight(data.g)}`, cx, 1020 + lines.length * 92 + 20);
+
+  ctx.font = '700 30px Nunito, system-ui, sans-serif';
+  const site = location.hostname.endsWith("github.io") ? `Малюк-фрукт · ${location.host}${location.pathname.replace(/\/$/, "")}` : "Малюк-фрукт";
+  ctx.fillText(site, cx, CARD.h - 44);
+
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))), "image/png"));
+}
+
+async function shareCard() {
+  el.share.disabled = true;
+  el.shareStatus.textContent = "Готуємо картинку…";
+  try {
+    const w = clampWeek(viewWeek !== null ? viewWeek : todayWeek);
+    const blob = await drawShareCard();
+    const file = new File([blob], `malyuk-frukt-${String(w).padStart(2, "0")}.png`, { type: "image/png" });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "Малюк-фрукт" });
+        el.shareStatus.textContent = "";
+      } catch (err) {
+        el.shareStatus.textContent = err && err.name === "AbortError" ? "" : "Не вдалося поділитися. Спробуйте ще раз.";
+      }
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    el.shareStatus.textContent = "Картинку збережено на пристрій.";
+  } catch (err) {
+    el.shareStatus.textContent = "Не вдалося створити картинку. Оновіть сторінку й спробуйте ще раз.";
+  } finally {
+    el.share.disabled = false;
+  }
 }
 
 /* ---------- форма ---------- */
@@ -406,6 +665,8 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") step(-1);
   else if (e.key === "ArrowRight") step(1);
 });
+
+el.share.addEventListener("click", shareCard);
 
 el.back.addEventListener("click", () => { viewWeek = null; render(); });
 

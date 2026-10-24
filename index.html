@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Podkova:wght@600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <div class="page">
@@ -68,13 +68,27 @@
             </div>
           </dl>
 
+          <div class="progress" id="progress" role="group" aria-label="Прогрес вагітності">
+            <svg class="ring" viewBox="0 0 72 72" aria-hidden="true">
+              <circle class="ring__track" cx="36" cy="36" r="30"/>
+              <circle class="ring__bar" id="ring-bar" cx="36" cy="36" r="30"/>
+              <text class="ring__text" id="ring-text" x="36" y="41" text-anchor="middle"></text>
+            </svg>
+            <div>
+              <p class="progress__title" id="progress-title"></p>
+              <p class="progress__sub" id="progress-sub"></p>
+            </div>
+          </div>
+
           <p class="story" id="result-fact"></p>
           <p class="due" id="result-due"></p>
 
           <div class="actions">
+            <button class="btn btn--primary" type="button" id="share">Поділитися малюком</button>
             <button class="btn btn--ghost" type="button" id="back-today" hidden>Повернутися до поточного тижня</button>
             <button class="btn btn--ghost" type="button" id="edit">Змінити дані</button>
           </div>
+          <p class="hint" id="share-status" role="status"></p>
         </div>
       </section>
 
@@ -171,6 +185,13 @@
       </figure>
     </main>
 
+    <!-- Найближчі події -->
+    <section class="upcoming" id="upcoming" hidden aria-labelledby="upcoming-title">
+      <h2 id="upcoming-title">Найближчі події</h2>
+      <ul class="events" id="events"></ul>
+      <p class="hint">Дати орієнтовні й пораховані від переносу. Точні терміни призначає ваш лікар.</p>
+    </section>
+
     <!-- Шкала тижнів -->
     <section class="timeline" id="timeline" hidden aria-labelledby="timeline-title">
       <h2 id="timeline-title">Натисніть на тиждень, щоб побачити, яким малюк був або буде</h2>
@@ -184,6 +205,6 @@
   </div>
 
   <noscript><p style="padding:24px">Для роботи сайту потрібен JavaScript.</p></noscript>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
