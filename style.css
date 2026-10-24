@@ -94,6 +94,16 @@ form { max-width: 28rem; }
   border: 3px solid var(--plum);
   border-radius: 20px;
 }
+/* iOS Safari растягивает date-поле по своему размеру и показывает его по-другому */
+.field input[type="date"] {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: left;
+}
+.field input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .field input[aria-invalid="true"] { border-color: var(--error); }
 
 .field select {
