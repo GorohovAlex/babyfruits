@@ -311,7 +311,8 @@ function showForm() {
     el.date.value = profile.date;
     el.day.value = String(profile.day);
   }
-  el.name.focus();
+  window.scrollTo(0, 0);
+  el.name.focus({ preventScroll: true });
 }
 
 function showResult() {
@@ -321,6 +322,8 @@ function showResult() {
   el.timeline.hidden = false;
   viewWeek = null;
   render();
+  window.scrollTo(0, 0); // на телефоне форма длинная: показываем рисунок сверху
+  el.title.focus({ preventScroll: true });
 }
 
 /* ---------- форма ---------- */

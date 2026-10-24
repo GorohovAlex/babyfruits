@@ -66,6 +66,8 @@ h1 {
   text-wrap: balance;
 }
 
+h1:focus { outline: none; }
+
 .lead {
   margin: 0 0 28px;
   max-width: 34rem;
