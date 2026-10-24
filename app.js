@@ -324,7 +324,7 @@ function render() {
   if (isPreview) renderProgress(w);
   else renderProgress(todayWeek, Math.max(days + 14 - todayWeek * 7, 0));
   renderEvents();
-  el.share.hidden = false;
+  el.share.hidden = isPreview; // делиться можно только текущей неделей
   el.shareStatus.textContent = "";
 
   showFruit(w);
@@ -500,7 +500,7 @@ function spark(ctx, x, y, r) {
 }
 
 async function drawShareCard() {
-  const w = clampWeek(viewWeek !== null ? viewWeek : todayWeek);
+  const w = clampWeek(todayWeek);
   const data = WEEKS[w];
   const [img] = await Promise.all([
     loadedFruitImage(),
@@ -557,7 +557,7 @@ async function drawShareCard() {
   // тексты
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  const head = viewWeek === null ? `${profile.name}, ${w}-й тиждень` : `${w}-й тиждень`;
+  const head = `${profile.name}, ${w}-й тиждень`;
   ctx.fillStyle = CARD.soft;
   ctx.font = '800 50px Podkova, Georgia, serif';
   ctx.fillText(head, cx, 925);
@@ -583,7 +583,7 @@ async function shareCard() {
   el.share.disabled = true;
   el.shareStatus.textContent = "Готуємо картинку…";
   try {
-    const w = clampWeek(viewWeek !== null ? viewWeek : todayWeek);
+    const w = clampWeek(todayWeek);
     const blob = await drawShareCard();
     const file = new File([blob], `malyuk-frukt-${String(w).padStart(2, "0")}.png`, { type: "image/png" });
 
