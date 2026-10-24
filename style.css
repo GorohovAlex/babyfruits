@@ -15,7 +15,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
 
 body {
   margin: 0;
@@ -51,7 +51,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
   gap: clamp(24px, 5vw, 80px);
-  align-items: center;
+  align-items: start; /* рисунок не должен «ездить» при смене длины текста */
   padding-block: 24px 8px;
 }
 
