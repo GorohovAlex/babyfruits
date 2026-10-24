@@ -72,6 +72,8 @@ const el = {
   timeline: $("timeline"),
   weeks: $("weeks"),
   fruit: $("fruit"),
+  prev: $("prev"),
+  next: $("next"),
 };
 
 /* ---------- расчёт срока ---------- */
@@ -208,16 +210,38 @@ function buildTimeline() {
     btn.dataset.week = w;
     btn.title = `${w}-й тиждень: ${WEEKS[w].name}`;
     btn.setAttribute("aria-label", `${w}-й тиждень, ${WEEKS[w].name}`);
-    btn.addEventListener("click", () => {
-      viewWeek = w === clampWeek(todayWeek) && todayWeek >= FIRST_WEEK ? null : w;
-      render();
-    });
+    btn.addEventListener("click", () => goToWeek(w));
     li.append(btn);
     el.weeks.append(li);
   }
 }
 
 const clampWeek = (w) => Math.min(Math.max(w, FIRST_WEEK), LAST_WEEK);
+
+function goToWeek(w) {
+  viewWeek = w === clampWeek(todayWeek) && todayWeek >= FIRST_WEEK ? null : w;
+  render();
+}
+
+/* Неделя, которая сейчас на экране. До 4-й недели фруктов ещё нет: считаем, что мы на 3-й. */
+function shownWeek() {
+  if (viewWeek !== null) return viewWeek;
+  return todayWeek < FIRST_WEEK ? FIRST_WEEK - 1 : clampWeek(todayWeek);
+}
+
+function step(delta) {
+  const next = shownWeek() + delta;
+  if (next < FIRST_WEEK || next > LAST_WEEK) return;
+  goToWeek(next);
+}
+
+function updateArrows() {
+  const w = shownWeek();
+  el.prev.disabled = w <= FIRST_WEEK;
+  el.next.disabled = w >= LAST_WEEK;
+  el.prev.setAttribute("aria-label", w > FIRST_WEEK ? `Попередній тиждень, ${w - 1}-й` : "Попередній тиждень");
+  el.next.setAttribute("aria-label", w < LAST_WEEK ? `Наступний тиждень, ${w + 1}-й` : "Наступний тиждень");
+}
 
 function updateTimeline(shown) {
   const today = clampWeek(todayWeek);
@@ -261,6 +285,7 @@ function render() {
     el.due.textContent = dueText(profile);
     showFruit(0);
     updateTimeline(null);
+    updateArrows();
     return;
   }
 
@@ -285,6 +310,7 @@ function render() {
 
   showFruit(w);
   updateTimeline(w);
+  updateArrows();
   centerTimeline(w);
 }
 
@@ -305,6 +331,7 @@ function showForm() {
   el.screenForm.hidden = false;
   el.screenResult.hidden = true;
   el.timeline.hidden = true;
+  el.prev.hidden = el.next.hidden = true;
   showFruit(0);
   if (profile) {
     el.name.value = profile.name;
@@ -320,6 +347,7 @@ function showResult() {
   el.screenForm.hidden = true;
   el.screenResult.hidden = false;
   el.timeline.hidden = false;
+  el.prev.hidden = el.next.hidden = false;
   viewWeek = null;
   render();
   window.scrollTo(0, 0); // на телефоне форма длинная: показываем рисунок сверху
@@ -366,6 +394,17 @@ el.form.addEventListener("submit", (e) => {
   saveProfile(profile);
   todayWeek = obstetricWeek(conceptionDays(profile));
   showResult();
+});
+
+el.prev.addEventListener("click", () => step(-1));
+el.next.addEventListener("click", () => step(1));
+
+/* Стрелки на клавиатуре листают недели, пока человек не печатает в форме. */
+document.addEventListener("keydown", (e) => {
+  if (e.altKey || e.ctrlKey || e.metaKey || el.screenResult.hidden) return;
+  if (e.target instanceof Element && e.target.closest("input, select, textarea, .weeks")) return;
+  if (e.key === "ArrowLeft") step(-1);
+  else if (e.key === "ArrowRight") step(1);
 });
 
 el.back.addEventListener("click", () => { viewWeek = null; render(); });

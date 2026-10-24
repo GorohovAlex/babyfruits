@@ -215,6 +215,32 @@ form { max-width: 28rem; }
   50% { transform: scale(1.04); }
 }
 
+/* ---------- стрелки переключения недель ---------- */
+.arrow {
+  position: absolute;
+  z-index: 3;
+  top: 66.43%;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  translate: 0 -50%;
+  color: var(--plum);
+  background: var(--mist);
+  border: 3px solid var(--plum);
+  border-radius: 50%;
+  box-shadow: 0 4px 0 var(--plum);
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, opacity .12s;
+}
+.arrow--prev { left: 0; }
+.arrow--next { right: 0; }
+.arrow svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.arrow:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 var(--plum); }
+.arrow:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--plum); }
+.arrow:disabled { opacity: .35; cursor: default; box-shadow: none; transform: translateY(4px); }
+
 /* ---------- шкала недель ---------- */
 .timeline {
   margin-top: 28px;
@@ -315,9 +341,11 @@ form { max-width: 28rem; }
   .btn { width: 100%; text-align: center; }
   .actions .btn { flex: 1 1 100%; }
   .weeks li { flex-basis: 34px; }
+  .arrow { width: 46px; height: 46px; }
+  .timeline { display: none; } /* на телефоне недели листают стрелки */
 }
 
 @media (prefers-reduced-motion: reduce) {
   .window img.is-in { animation: none; }
-  .btn, .wk::before { transition: none; }
+  .btn, .arrow, .wk::before { transition: none; }
 }
