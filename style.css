@@ -175,6 +175,20 @@ form { max-width: 28rem; }
 #share-status:not(:empty) { margin-top: 8px; }
 
 /* ---------- рисунок ---------- */
+/* звёздочки вокруг мамы мерцают по очереди: короткая вспышка и долгая пауза */
+.spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: twinkle 16s ease-in-out infinite;
+}
+.spark--2 { animation-delay: -12s; }
+.spark--3 { animation-delay: -8s; }
+.spark--4 { animation-delay: -4s; }
+@keyframes twinkle {
+  0%, 25%, 100% { opacity: 1;   transform: scale(1) rotate(0); }
+  12%           { opacity: .3;  transform: scale(.6) rotate(20deg); }
+}
+
 /* рисунок и управление не должны выделяться при двойном клике или перетаскивании */
 .figure, .btn, .arrow, .weeks, .ring {
   -webkit-user-select: none;
@@ -198,6 +212,7 @@ form { max-width: 28rem; }
   inset: 6% -6% 4% -6%;
   background: linear-gradient(160deg, #D9C6E3, #E3C5D3);
   border-radius: 58% 42% 55% 45% / 46% 56% 44% 54%;
+  animation: blob-a 22s ease-in-out infinite;
 }
 .figure__blob--b {
   width: 38%;
@@ -207,7 +222,19 @@ form { max-width: 28rem; }
   background: var(--rose);
   opacity: .45;
   border-radius: 46% 54% 40% 60% / 56% 44% 56% 44%;
+  animation: blob-b 26s ease-in-out infinite;
 }
+/* фоновые пятна медленно меняют форму */
+@keyframes blob-a {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 46% 56% 44% 54%; transform: scale(1); }
+  33%      { border-radius: 46% 54% 42% 58% / 56% 44% 56% 44%; transform: scale(1.03); }
+  66%      { border-radius: 52% 48% 60% 40% / 42% 58% 42% 58%; transform: scale(.98); }
+}
+@keyframes blob-b {
+  0%, 100% { border-radius: 46% 54% 40% 60% / 56% 44% 56% 44%; transform: translate(0, 0); }
+  50%      { border-radius: 58% 42% 52% 48% / 44% 58% 42% 56%; transform: translate(-6px, -8px); }
+}
+
 .mom { position: relative; z-index: 1; display: block; width: 100%; height: 100%; overflow: visible; }
 
 /* окно: центр на животе (200, 372 из 400x560) */
@@ -424,5 +451,6 @@ form { max-width: 28rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .window img.is-in { animation: none; }
+  .spark, .figure__blob { animation: none; }
   .btn, .arrow, .wk::before { transition: none; }
 }
