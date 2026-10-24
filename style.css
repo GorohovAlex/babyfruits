@@ -241,6 +241,14 @@ form { max-width: 28rem; }
 .arrow:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--plum); }
 .arrow:disabled { opacity: .35; cursor: default; box-shadow: none; transform: translateY(4px); }
 
+/* на компьютере стрелки приглушены и проявляются при наведении или фокусе */
+@media (min-width: 821px) {
+  .arrow { opacity: .5; }
+  .arrow:hover:not(:disabled),
+  .arrow:focus-visible { opacity: 1; }
+  .arrow:disabled { opacity: .2; }
+}
+
 /* ---------- шкала недель ---------- */
 .timeline {
   margin-top: 28px;
