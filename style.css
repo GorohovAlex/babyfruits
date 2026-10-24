@@ -175,6 +175,17 @@ form { max-width: 28rem; }
 #share-status:not(:empty) { margin-top: 8px; }
 
 /* ---------- рисунок ---------- */
+/* рисунок и управление не должны выделяться при двойном клике или перетаскивании */
+.figure, .btn, .arrow, .weeks, .ring {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.figure img, .figure svg, .top img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
 .figure {
   position: relative;
   margin: 0 auto;
