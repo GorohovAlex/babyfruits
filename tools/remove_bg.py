@@ -1,4 +1,4 @@
-"""Вырезает фон у фруктов из Midjourney.
+"""Вырезает фон у фруктов, созданных в Gemini.
 
 fruits/raw/week-NN.png -> fruits/week-NN.webp (прозрачный фон, до 512 px).
 
